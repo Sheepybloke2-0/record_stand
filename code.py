@@ -13,6 +13,82 @@ neopixels = neopixel.NeoPixel(board.GP16, LED_COUNT, brightness=0.75, auto_write
 display = Display(i2c)
 
 text_to_show = "Now Playing"
+music_notes_1 = (
+    (1, 6),
+    (1, 7),
+    (2, 2),
+    (2, 3),
+    (2, 4),
+    (2, 5),
+    (2, 6),
+    (2, 7),
+    (3, 1),
+    (4, 0),
+    (4, 5),
+    (4, 6),
+    (5, 0),
+    (5, 1),
+    (5, 2),
+    (5, 3),
+    (5, 4),
+    (5, 5),
+    (5, 6),
+    (8, 6),
+    (8, 7),
+    (9, 2),
+    (9, 3),
+    (9, 4),
+    (9, 5),
+    (9, 6),
+    (9, 7),
+    (10, 2),
+    (11, 5),
+    (11, 6),
+    (12, 1),
+    (12, 2),
+    (12, 3),
+    (12, 4),
+    (12, 5),
+    (12, 6),
+)
+
+music_notes_2 = (
+    (1, 4),
+    (1, 5),
+    (2, 0),
+    (2, 1),
+    (2, 2),
+    (2, 3),
+    (2, 4),
+    (2, 5),
+    (3, 0),
+    (4, 1),
+    (4, 6),
+    (4, 7),
+    (5, 2),
+    (5, 3),
+    (5, 4),
+    (5, 5),
+    (5, 6),
+    (5, 7),
+    (8, 7),
+    (8, 8),
+    (9, 3),
+    (9, 4),
+    (9, 5),
+    (9, 6),
+    (9, 7),
+    (9, 8),
+    (11, 4),
+    (11, 5),
+    (12, 1),
+    (12, 2),
+    (12, 3),
+    (12, 4),
+    (12, 5),
+    (13, 0),
+)
+music_notes = (music_notes_1, music_notes_2)
 
 # Create a framebuffer for our display
 buf = bytearray(32)  # 2 bytes tall x 16 wide = 32 bytes (9 bits is 2 bytes)
@@ -49,6 +125,7 @@ async def led_cycle(i: int = 0):
 
 
 async def cycle_text(frame: int = 0):
+    NOTE_CYCLES = 4
     while True:
         for k in range(len(text_to_show) * 9):
             fb.fill(0)
@@ -73,6 +150,21 @@ async def cycle_text(frame: int = 0):
             display.frame(frame, show=True)
             frame = 0 if frame else 1
             await asyncio.sleep(0)
+
+        await asyncio.sleep(0.5)
+        frame = 0
+        display.sleep(True)  # turn display off while frames are updated
+        display.fill(0)
+        for note in music_notes:
+            display.frame(frame, show=False)
+            for pixel in note:
+                display.pixel(pixel[0], pixel[1], 128)
+            frame = 1
+        display.sleep(False)  # turn display off while frames are updated
+        for l in range(NOTE_CYCLES * len(music_notes)):
+            display.frame(frame, show=True)
+            frame = 0 if frame else 1
+            await asyncio.sleep(1)
 
 
 async def main():
